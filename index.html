@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AM/NS India — Travel Expense Reimbursement</title>
+<style>
+  :root {
+    --brand-red: #E60000;
+    --brand-red-dark: #B30000;
+    --text: #111;
+    --muted: #666;
+    --border: #c8c8c8;
+    --border-strong: #000;
+    --bg: #f5f5f5;
+    --card: #fff;
+    --err: #c92a2a;
+    --ok: #2b8a3e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 16px; }
+
+  /* Header strip matching the PDF */
+  .brand-header { display: flex; align-items: stretch; gap: 16px; margin-bottom: 16px; }
+  .logo {
+    font-family: "Helvetica Neue", Helvetica, Arial Black, sans-serif;
+    font-weight: 900;
+    color: var(--brand-red);
+    font-size: 28px;
+    line-height: 0.95;
+    letter-spacing: -0.5px;
+    padding: 4px 0;
+  }
+  .logo .l1 { display: block; }
+  .logo .l2 { display: block; }
+  .title-bar {
+    flex: 1;
+    background: var(--brand-red);
+    color: #fff;
+    font-weight: 700;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 10px 14px;
+    letter-spacing: 0.4px;
+  }
+
+  h2 { font-size: 15px; margin: 0 0 8px 0; }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  input, select { width: 100%; padding: 8px 10px; font: inherit; border: 1px solid var(--border); border-radius: 4px; background: #fff; }
+  input:focus, select:focus { outline: 2px solid var(--brand-red); outline-offset: -1px; border-color: var(--brand-red); }
+  input.invalid, select.invalid { border-color: var(--err); }
+  .field-err { color: var(--err); font-size: 12px; margin-top: 2px; min-height: 14px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  @media (max-width: 640px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.t th, table.t td { border: 1px solid var(--border-strong); padding: 6px; text-align: left; vertical-align: middle; }
+  table.t thead th { background: #fafafa; font-style: italic; font-weight: 700; text-align: center; }
+  table.t td input, table.t td select { padding: 6px; border: 1px solid transparent; border-radius: 2px; }
+  table.t td input:focus, table.t td select:focus { border-color: var(--brand-red); }
+  table.t td input[type="number"] { text-align: right; }
+  table.t .num { text-align: right; }
+  table.t td.idx { width: 36px; text-align: center; color: var(--muted); }
+  table.t td.del { width: 36px; text-align: center; }
+  .summary-label { font-style: italic; font-weight: 700; }
+
+  .scroll-x { overflow-x: auto; }
+  .row-actions { display: flex; gap: 8px; margin-top: 8px; }
+
+  button { font: inherit; cursor: pointer; padding: 8px 14px; border-radius: 4px; border: 1px solid var(--border); background: #fff; }
+  button.primary { background: var(--brand-red); color: #fff; border-color: var(--brand-red); font-weight: 600; }
+  button.primary:hover { background: var(--brand-red-dark); border-color: var(--brand-red-dark); }
+  button.ghost { background: transparent; }
+  button.danger { color: var(--err); border-color: var(--err); background: #fff; }
+  button.icon { padding: 4px 8px; line-height: 1; }
+
+  .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 640px) { .sig-grid { grid-template-columns: 1fr; } }
+  .sig-block .pad-wrap { position: relative; }
+  .sig-pad { width: 100%; height: 140px; background: #fff; border: 1px solid var(--border-strong); border-radius: 2px; touch-action: none; display: block; }
+  .sig-clear { position: absolute; top: 6px; right: 6px; }
+
+  .declaration { padding: 8px 0; }
+
+  .footer-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+  .draft-status { font-size: 12px; color: var(--muted); }
+  .draft-status.saved { color: var(--ok); }
+
+  .hint { font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand-header">
+    <div class="logo" aria-label="AM/NS India">
+      <span class="l1">AM/NS</span><span class="l2">INDIA</span>
+    </div>
+    <div class="title-bar">TRAVEL EXPENSES REIMBURSEMENT</div>
+  </div>
+
+  <form id="form" autocomplete="off" novalidate>
+
+    <section class="card">
+      <h2>Employee Details</h2>
+      <div class="grid-2">
+        <div>
+          <label for="f-name">Your Name</label>
+          <input id="f-name" name="name" type="text" required />
+          <div class="field-err" data-err="name"></div>
+        </div>
+        <div>
+          <label for="f-company">Company</label>
+          <input id="f-company" name="company" type="text" required />
+          <div class="field-err" data-err="company"></div>
+        </div>
+        <div>
+          <label for="f-sap">SAP ID</label>
+          <input id="f-sap" name="sapId" type="text" inputmode="numeric" pattern="[0-9]{6,10}" required />
+          <div class="field-err" data-err="sapId"></div>
+        </div>
+        <div>
+          <label for="f-asset">Asset</label>
+          <input id="f-asset" name="asset" type="text" required />
+          <div class="field-err" data-err="asset"></div>
+        </div>
+        <div>
+          <label for="f-level">Level</label>
+          <input id="f-level" name="level" type="text" required />
+          <div class="field-err" data-err="level"></div>
+        </div>
+        <div>
+          <label for="f-purpose">Purpose of visit</label>
+          <input id="f-purpose" name="purpose" type="text" required />
+          <div class="field-err" data-err="purpose"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Travel Details</h2>
+      <div class="scroll-x">
+        <table class="t" id="travel-table">
+          <thead>
+            <tr>
+              <th rowspan="2">S.No.</th>
+              <th rowspan="2">Place Visited</th>
+              <th colspan="2">Stay From</th>
+              <th colspan="2">To</th>
+              <th rowspan="2">Medium of travel (Air / Rail)</th>
+              <th rowspan="2"></th>
+            </tr>
+            <tr>
+              <th>Date</th><th>Time</th><th>Date</th><th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="travel-body"></tbody>
+        </table>
+      </div>
+      <div class="row-actions">
+        <button type="button" id="travel-add" class="ghost">+ Add row</button>
+        <span class="hint">PDF will pad to 5 rows when fewer are entered.</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Expenses Details</h2>
+      <div class="scroll-x">
+        <table class="t" id="exp-table">
+          <thead>
+            <tr>
+              <th rowspan="2">S.No.</th>
+              <th rowspan="2">Place Visited</th>
+              <th colspan="5">Expenses</th>
+              <th colspan="2">Expenses paid by</th>
+              <th rowspan="2"></th>
+            </tr>
+            <tr>
+              <th>Air / Rail Fare</th>
+              <th>Lodging</th>
+              <th>Boarding</th>
+              <th>Local Conveyance</th>
+              <th>Others</th>
+              <th>AMNSI</th>
+              <th>Staff</th>
+            </tr>
+          </thead>
+          <tbody id="exp-body"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="7" class="summary-label">Total</td>
+              <td class="num" id="sum-amnsi">0.00</td>
+              <td class="num" id="sum-staff">0.00</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td colspan="7" class="summary-label">Less : Advance taken</td>
+              <td class="num" colspan="2"><input id="f-advance" type="number" min="0" step="0.01" value="0" style="text-align:right" /></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td colspan="7" class="summary-label">Due to staff / company</td>
+              <td class="num" id="due-amnsi">0.00</td>
+              <td class="num" id="due-staff">0.00</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="row-actions">
+        <button type="button" id="exp-add" class="ghost">+ Add row</button>
+        <span class="hint">"Due to staff / company" = (AMNSI − Advance) and Staff totals.</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Declaration</h2>
+      <p class="declaration">I hereby declare that the above expenses incurred are true and correct.</p>
+    </section>
+
+    <section class="card">
+      <h2>Signatures</h2>
+      <div class="sig-grid">
+        <div class="sig-block">
+          <label>Your Signature</label>
+          <div class="pad-wrap">
+            <canvas class="sig-pad" id="sig-self" width="600" height="180"></canvas>
+            <button type="button" class="sig-clear icon" data-clear="self">Clear</button>
+          </div>
+          <div class="field-err" data-err="sigSelf"></div>
+          <div style="margin-top:10px" class="grid-2">
+            <div>
+              <label for="f-self-name">Name</label>
+              <input id="f-self-name" type="text" required />
+              <div class="field-err" data-err="selfName"></div>
+            </div>
+            <div>
+              <label for="f-self-date">Date (DD/MM/YYYY)</label>
+              <input id="f-self-date" type="date" required />
+              <div class="field-err" data-err="selfDate"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sig-block">
+          <label>Head of Department's Signature</label>
+          <div class="pad-wrap">
+            <canvas class="sig-pad" id="sig-hod" width="600" height="180"></canvas>
+            <button type="button" class="sig-clear icon" data-clear="hod">Clear</button>
+          </div>
+          <div class="field-err" data-err="sigHod"></div>
+          <div style="margin-top:10px" class="grid-2">
+            <div>
+              <label for="f-hod-name">Name</label>
+              <input id="f-hod-name" type="text" required />
+              <div class="field-err" data-err="hodName"></div>
+            </div>
+            <div>
+              <label for="f-hod-date">Date (DD/MM/YYYY)</label>
+              <input id="f-hod-date" type="date" required />
+              <div class="field-err" data-err="hodDate"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-actions">
+      <button type="button" class="primary" id="btn-pdf">Generate PDF</button>
+      <button type="button" id="btn-clear" class="danger">Clear draft</button>
+      <span class="draft-status" id="draft-status">Draft auto-saves to this browser.</span>
+    </div>
+
+  </form>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ----- Constants -----
+  const STORAGE_KEY = 'amns_travel_draft_v1';
+  const BRAND_RED = [230, 0, 0];
+  const MAX_ROWS_PAD = 5;
+
+  // ----- State -----
+  const state = {
+    version: 1,
+    employee: { name: '', company: '', sapId: '', asset: '', level: '', purpose: '' },
+    travel: [],
+    expenses: [],
+    advanceTaken: 0,
+    signatures: {
+      self: { dataUrl: '', name: '', date: '' },
+      hod:  { dataUrl: '', name: '', date: '' }
+    }
+  };
+
+  function blankTravel() { return { place: '', fromDate: '', fromTime: '', toDate: '', toTime: '', medium: 'Air' }; }
+  function blankExpense() { return { place: '', airRail: 0, lodging: 0, boarding: 0, localConv: 0, others: 0, paidByAmnsi: 0, paidByStaff: 0 }; }
+
+  // ----- Utilities -----
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  function fmtINR(n) {
+    const v = Number(n) || 0;
+    return v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function num(v) { const n = parseFloat(v); return isFinite(n) ? n : 0; }
+  function slug(s) { return (s || '').trim().replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'Employee'; }
+  function fmtDateDDMMYYYY(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-');
+    if (!y || !m || !d) return iso;
+    return `${d}/${m}/${y}`;
+  }
+  function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+  // ----- Travel rows -----
+  function renderTravel() {
+    const tb = $('#travel-body');
+    tb.innerHTML = '';
+    if (state.travel.length === 0) state.travel.push(blankTravel());
+    state.travel.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="idx">${i + 1}</td>
+        <td><input type="text" data-bind="travel.${i}.place" value="${escapeHtml(r.place)}" /></td>
+        <td><input type="date" data-bind="travel.${i}.fromDate" value="${escapeHtml(r.fromDate)}" /></td>
+        <td><input type="time" data-bind="travel.${i}.fromTime" value="${escapeHtml(r.fromTime)}" /></td>
+        <td><input type="date" data-bind="travel.${i}.toDate" value="${escapeHtml(r.toDate)}" /></td>
+        <td><input type="time" data-bind="travel.${i}.toTime" value="${escapeHtml(r.toTime)}" /></td>
+        <td>
+          <select data-bind="travel.${i}.medium">
+            <option ${r.medium==='Air'?'selected':''}>Air</option>
+            <option ${r.medium==='Rail'?'selected':''}>Rail</option>
+          </select>
+        </td>
+        <td class="del"><button type="button" class="icon" data-remove="travel" data-idx="${i}" aria-label="Remove row">×</button></td>
+      `;
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderExpenses() {
+    const tb = $('#exp-body');
+    tb.innerHTML = '';
+    if (state.expenses.length === 0) state.expenses.push(blankExpense());
+    state.expenses.forEach((r, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="idx">${i + 1}</td>
+        <td><input type="text" data-bind="expenses.${i}.place" value="${escapeHtml(r.place)}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.airRail" value="${r.airRail || ''}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.lodging" value="${r.lodging || ''}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.boarding" value="${r.boarding || ''}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.localConv" value="${r.localConv || ''}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.others" value="${r.others || ''}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.paidByAmnsi" value="${r.paidByAmnsi || ''}" /></td>
+        <td><input type="number" min="0" step="0.01" data-bind="expenses.${i}.paidByStaff" value="${r.paidByStaff || ''}" /></td>
+        <td class="del"><button type="button" class="icon" data-remove="expenses" data-idx="${i}" aria-label="Remove row">×</button></td>
+      `;
+      tb.appendChild(tr);
+    });
+    recalcTotals();
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  // ----- Totals -----
+  function recalcTotals() {
+    let sumAmnsi = 0, sumStaff = 0;
+    state.expenses.forEach(r => {
+      sumAmnsi += num(r.paidByAmnsi);
+      sumStaff += num(r.paidByStaff);
+    });
+    const dueAmnsi = sumAmnsi - num(state.advanceTaken);
+    const dueStaff = sumStaff;
+    $('#sum-amnsi').textContent = fmtINR(sumAmnsi);
+    $('#sum-staff').textContent = fmtINR(sumStaff);
+    $('#due-amnsi').textContent = fmtINR(dueAmnsi);
+    $('#due-staff').textContent = fmtINR(dueStaff);
+    return { sumAmnsi, sumStaff, dueAmnsi, dueStaff };
+  }
+
+  // ----- Binding -----
+  function setPath(obj, path, value) {
+    const parts = path.split('.');
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+      const k = parts[i];
+      cur = cur[isNaN(k) ? k : Number(k)];
+    }
+    const last = parts[parts.length - 1];
+    cur[isNaN(last) ? last : Number(last)] = value;
+  }
+
+  function bindEmployeeInputs() {
+    const map = {
+      'f-name': 'name', 'f-company': 'company', 'f-sap': 'sapId',
+      'f-asset': 'asset', 'f-level': 'level', 'f-purpose': 'purpose'
+    };
+    Object.entries(map).forEach(([id, key]) => {
+      const el = document.getElementById(id);
+      el.value = state.employee[key] || '';
+      el.addEventListener('input', () => { state.employee[key] = el.value; scheduleSave(); });
+    });
+
+    const sigMap = {
+      'f-self-name': ['self', 'name'],
+      'f-self-date': ['self', 'date'],
+      'f-hod-name':  ['hod', 'name'],
+      'f-hod-date':  ['hod', 'date']
+    };
+    Object.entries(sigMap).forEach(([id, [k, f]]) => {
+      const el = document.getElementById(id);
+      el.value = state.signatures[k][f] || '';
+      el.addEventListener('input', () => { state.signatures[k][f] = el.value; scheduleSave(); });
+    });
+
+    const adv = document.getElementById('f-advance');
+    adv.value = state.advanceTaken || 0;
+    adv.addEventListener('input', () => { state.advanceTaken = num(adv.value); recalcTotals(); scheduleSave(); });
+  }
+
+  function delegateTableInputs() {
+    document.body.addEventListener('input', e => {
+      const t = e.target;
+      const bind = t.getAttribute && t.getAttribute('data-bind');
+      if (!bind) return;
+      const val = t.type === 'number' ? num(t.value) : t.value;
+      setPath(state, bind, val);
+      if (bind.startsWith('expenses.')) recalcTotals();
+      scheduleSave();
+    });
+    document.body.addEventListener('change', e => {
+      const t = e.target;
+      const bind = t.getAttribute && t.getAttribute('data-bind');
+      if (bind && t.tagName === 'SELECT') {
+        setPath(state, bind, t.value);
+        scheduleSave();
+      }
+    });
+    document.body.addEventListener('click', e => {
+      const rm = e.target.getAttribute && e.target.getAttribute('data-remove');
+      if (!rm) return;
+      const idx = Number(e.target.getAttribute('data-idx'));
+      if (state[rm].length <= 1) return;
+      state[rm].splice(idx, 1);
+      if (rm === 'travel') renderTravel(); else renderExpenses();
+      scheduleSave();
+    });
+  }
+
+  // ----- Signature pads -----
+  function setupPad(canvas) {
+    const ctx = canvas.getContext('2d');
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.2; ctx.strokeStyle = '#000';
+    let drawing = false, hasInk = false;
+    function pos(e) {
+      const r = canvas.getBoundingClientRect();
+      return { x: (e.clientX - r.left) * (canvas.width / r.width), y: (e.clientY - r.top) * (canvas.height / r.height) };
+    }
+    canvas.addEventListener('pointerdown', e => { drawing = true; canvas.setPointerCapture(e.pointerId); const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('pointermove', e => { if (!drawing) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); hasInk = true; });
+    const stop = e => { if (!drawing) return; drawing = false; if (hasInk) { persistSig(canvas); } };
+    canvas.addEventListener('pointerup', stop);
+    canvas.addEventListener('pointercancel', stop);
+    canvas.addEventListener('pointerleave', stop);
+  }
+
+  function persistSig(canvas) {
+    const key = canvas.id === 'sig-self' ? 'self' : 'hod';
+    state.signatures[key].dataUrl = canvas.toDataURL('image/png');
+    scheduleSave();
+  }
+
+  function restoreSig(key) {
+    const canvas = document.getElementById(key === 'self' ? 'sig-self' : 'sig-hod');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const url = state.signatures[key].dataUrl;
+    if (!url) return;
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    img.src = url;
+  }
+
+  function clearPad(key) {
+    const canvas = document.getElementById(key === 'self' ? 'sig-self' : 'sig-hod');
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    state.signatures[key].dataUrl = '';
+    scheduleSave();
+  }
+
+  function isCanvasBlank(canvas) {
+    const ctx = canvas.getContext('2d');
+    const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 3; i < d.length; i += 4) { if (d[i] !== 0) return false; }
+    return true;
+  }
+
+  // ----- Persistence -----
+  let saveTimer = null;
+  function scheduleSave() {
+    if (saveTimer) clearTimeout(saveTimer);
+    const el = $('#draft-status'); el.textContent = 'Saving draft…'; el.classList.remove('saved');
+    saveTimer = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        el.textContent = 'Draft saved ' + new Date().toLocaleTimeString();
+        el.classList.add('saved');
+      } catch (err) {
+        el.textContent = 'Could not save draft: ' + err.message;
+      }
+    }, 500);
+  }
+
+  function loadDraft() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.version === 1) {
+        Object.assign(state, parsed);
+        if (!Array.isArray(state.travel)) state.travel = [];
+        if (!Array.isArray(state.expenses)) state.expenses = [];
+      }
+    } catch (e) { /* ignore corrupt draft */ }
+  }
+
+  function clearDraft() {
+    if (!confirm('Clear all entered data and the saved draft?')) return;
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+
+  // ----- Validation -----
+  function setErr(name, msg) {
+    const el = document.querySelector(`[data-err="${name}"]`);
+    if (el) el.textContent = msg || '';
+    const input = document.getElementById('f-' + (name === 'sapId' ? 'sap' : name));
+    if (input) input.classList.toggle('invalid', !!msg);
+  }
+
+  function validate() {
+    let ok = true;
+    const e = state.employee;
+    [['name', e.name], ['company', e.company], ['asset', e.asset], ['level', e.level], ['purpose', e.purpose]].forEach(([k, v]) => {
+      if (!v || !String(v).trim()) { setErr(k, 'Required'); ok = false; } else setErr(k, '');
+    });
+    if (!/^\d{6,10}$/.test(String(e.sapId || ''))) { setErr('sapId', 'Must be 6–10 digits'); ok = false; } else setErr('sapId', '');
+
+    // signatures
+    const selfCanvas = document.getElementById('sig-self');
+    const hodCanvas = document.getElementById('sig-hod');
+    if (isCanvasBlank(selfCanvas)) { setErr('sigSelf', 'Please sign'); ok = false; } else setErr('sigSelf', '');
+    if (isCanvasBlank(hodCanvas))  { setErr('sigHod',  'Please sign'); ok = false; } else setErr('sigHod', '');
+
+    const today = todayISO();
+    const sigChecks = [
+      ['selfName', state.signatures.self.name, 'Required'],
+      ['hodName',  state.signatures.hod.name,  'Required'],
+      ['selfDate', state.signatures.self.date, 'Required'],
+      ['hodDate',  state.signatures.hod.date,  'Required']
+    ];
+    sigChecks.forEach(([k, v, msg]) => {
+      if (!v) { setErr(k, msg); ok = false; }
+      else if ((k === 'selfDate' || k === 'hodDate') && v > today) { setErr(k, 'Date cannot be in the future'); ok = false; }
+      else setErr(k, '');
+    });
+
+    // travel rows: at least one row needs a place
+    const hasTravel = state.travel.some(r => r.place && r.place.trim());
+    if (!hasTravel) { alert('Please add at least one travel row with a place.'); ok = false; }
+
+    state.travel.forEach((r, i) => {
+      if (r.place && r.fromDate && r.toDate && r.fromDate > r.toDate) {
+        alert(`Travel row ${i+1}: "From" date is after "To" date.`); ok = false;
+      }
+    });
+
+    const hasExpense = state.expenses.some(r => r.place && r.place.trim());
+    if (!hasExpense) { alert('Please add at least one expense row with a place.'); ok = false; }
+
+    return ok;
+  }
+
+  // ----- PDF generation -----
+  function generatePdf() {
+    if (!validate()) return;
+    // refresh signature data URLs from current canvas state in case user drew but didn't release outside the pad
+    state.signatures.self.dataUrl = document.getElementById('sig-self').toDataURL('image/png');
+    state.signatures.hod.dataUrl  = document.getElementById('sig-hod').toDataURL('image/png');
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const M = { left: 15, right: 15, top: 12 };
+    const contentW = pageW - M.left - M.right;
+
+    // --- Header: logo wordmark (vector text) ---
+    doc.setTextColor(BRAND_RED[0], BRAND_RED[1], BRAND_RED[2]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('AM/NS', M.left, M.top + 7);
+    doc.text('INDIA', M.left, M.top + 14);
+
+    // --- Red title bar ---
+    const titleBarY = M.top + 19;
+    const titleBarH = 8;
+    doc.setFillColor(BRAND_RED[0], BRAND_RED[1], BRAND_RED[2]);
+    doc.rect(M.left, titleBarY, contentW, titleBarH, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TRAVEL EXPENSES REIMBURSEMENT', M.left + 3, titleBarY + titleBarH / 2 + 1.5);
+
+    doc.setTextColor(0, 0, 0);
+    let y = titleBarY + titleBarH + 4;
+
+    // --- Employee info: 2-col, 3-row table (no header) ---
+    const E = state.employee;
+    doc.autoTable({
+      startY: y,
+      margin: { left: M.left, right: M.right },
+      tableWidth: contentW,
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 10, cellPadding: 2.2, textColor: 0, lineColor: 0, lineWidth: 0.2, minCellHeight: 9 },
+      body: [
+        [{ content: 'Your Name: ' + (E.name || '') }, { content: 'Company: ' + (E.company || '') }],
+        [{ content: 'SAP ID: '    + (E.sapId || '') }, { content: 'Asset: '   + (E.asset || '') }],
+        [{ content: 'Level: '     + (E.level || '') }, { content: 'Purpose of visit: ' + (E.purpose || '') }]
+      ],
+      columnStyles: { 0: { cellWidth: contentW / 2 }, 1: { cellWidth: contentW / 2 } }
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // --- Travel Details label ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Travel Details', M.left, y);
+    y += 2;
+
+    // Travel table
+    const travelRows = padRows(
+      state.travel.filter(r => r.place || r.fromDate || r.toDate || r.fromTime || r.toTime).map((r, i) => ([
+        String(i + 1),
+        r.place || '',
+        fmtDateDDMMYYYY(r.fromDate),
+        r.fromTime || '',
+        fmtDateDDMMYYYY(r.toDate),
+        r.toTime || '',
+        r.medium || ''
+      ])),
+      7, MAX_ROWS_PAD
+    );
+    // re-number padded indices: only number rows that have data
+    travelRows.forEach((row, i) => { row[0] = row.slice(1).some(c => c) ? String(i + 1) : ''; });
+
+    doc.autoTable({
+      startY: y + 1,
+      margin: { left: M.left, right: M.right },
+      tableWidth: contentW,
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 9, cellPadding: 1.8, textColor: 0, lineColor: 0, lineWidth: 0.2, minCellHeight: 8, valign: 'middle' },
+      headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: 'bolditalic', halign: 'center' },
+      bodyStyles: { halign: 'center' },
+      columnStyles: {
+        0: { cellWidth: 12 },
+        1: { cellWidth: 38, halign: 'left' },
+        2: { cellWidth: 22 }, 3: { cellWidth: 18 },
+        4: { cellWidth: 22 }, 5: { cellWidth: 18 },
+        6: { cellWidth: 'auto' }
+      },
+      head: [
+        [
+          { content: 'S.No.', rowSpan: 2 },
+          { content: 'Place Visited', rowSpan: 2 },
+          { content: 'Stay From', colSpan: 2 },
+          { content: 'To', colSpan: 2 },
+          { content: 'Medium of\ntravel to that place\n(Air / Rail)', rowSpan: 2 }
+        ],
+        [
+          { content: 'Date' }, { content: 'Time' },
+          { content: 'Date' }, { content: 'Time' }
+        ]
+      ],
+      body: travelRows
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // --- Expenses Details label ---
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Expenses Details', M.left, y);
+    y += 2;
+
+    // Expenses table
+    const expBody = padRows(
+      state.expenses.filter(r => r.place || r.airRail || r.lodging || r.boarding || r.localConv || r.others || r.paidByAmnsi || r.paidByStaff).map((r, i) => ([
+        String(i + 1),
+        r.place || '',
+        formatCell(r.airRail), formatCell(r.lodging), formatCell(r.boarding), formatCell(r.localConv), formatCell(r.others),
+        formatCell(r.paidByAmnsi), formatCell(r.paidByStaff)
+      ])),
+      9, MAX_ROWS_PAD
+    );
+    expBody.forEach((row, i) => { row[0] = row.slice(1).some(c => c) ? String(i + 1) : ''; });
+
+    const totals = recalcTotals();
+    const totalRow   = [{ content: 'Total',                    colSpan: 7, styles: { fontStyle: 'bolditalic', halign: 'left' } },
+                        { content: fmtINR(totals.sumAmnsi), styles: { halign: 'right' } },
+                        { content: fmtINR(totals.sumStaff), styles: { halign: 'right' } }];
+    const lessRow    = [{ content: 'Less : Advance taken',     colSpan: 7, styles: { fontStyle: 'bolditalic', halign: 'left' } },
+                        { content: fmtINR(num(state.advanceTaken)), colSpan: 2, styles: { halign: 'right' } }];
+    const dueRow     = [{ content: 'Due to staff / company',   colSpan: 7, styles: { fontStyle: 'bolditalic', halign: 'left' } },
+                        { content: fmtINR(totals.dueAmnsi), styles: { halign: 'right' } },
+                        { content: fmtINR(totals.dueStaff), styles: { halign: 'right' } }];
+
+    doc.autoTable({
+      startY: y + 1,
+      margin: { left: M.left, right: M.right },
+      tableWidth: contentW,
+      theme: 'grid',
+      styles: { font: 'helvetica', fontSize: 9, cellPadding: 1.6, textColor: 0, lineColor: 0, lineWidth: 0.2, minCellHeight: 8, valign: 'middle' },
+      headStyles: { fillColor: [255, 255, 255], textColor: 0, fontStyle: 'bolditalic', halign: 'center' },
+      bodyStyles: { halign: 'right' },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 26, halign: 'left' },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 'auto' },
+        4: { cellWidth: 'auto' },
+        5: { cellWidth: 'auto' },
+        6: { cellWidth: 'auto' },
+        7: { cellWidth: 22 },
+        8: { cellWidth: 22 }
+      },
+      head: [
+        [
+          { content: 'S.No.', rowSpan: 2 },
+          { content: 'Place\nVisited', rowSpan: 2 },
+          { content: 'Expenses', colSpan: 5 },
+          { content: 'Expenses paid by', colSpan: 2 }
+        ],
+        [
+          { content: 'Air /\nRail\nFare' },
+          { content: 'Lodging' },
+          { content: 'Boarding' },
+          { content: 'Local Conveyance' },
+          { content: 'Others' },
+          { content: 'AMNSI' },
+          { content: 'Staff' }
+        ]
+      ],
+      body: expBody.concat([totalRow, lessRow, dueRow])
+    });
+    y = doc.lastAutoTable.finalY + 6;
+
+    // --- Declaration ---
+    if (y > 250) { doc.addPage(); y = M.top; }
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Declaration', M.left, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text('I hereby declare that the above expenses incurred are true and correct.', M.left, y + 5);
+    y += 12;
+
+    // --- Signatures side-by-side ---
+    const sigBoxW = (contentW - 10) / 2;
+    const sigBoxH = 20;
+    const leftX = M.left;
+    const rightX = M.left + sigBoxW + 10;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Your Signature', leftX, y);
+    doc.text("Head of Department's Signature", rightX, y);
+
+    const boxY = y + 2;
+    doc.setLineWidth(0.3);
+    doc.rect(leftX, boxY, sigBoxW, sigBoxH);
+    doc.rect(rightX, boxY, sigBoxW, sigBoxH);
+
+    if (state.signatures.self.dataUrl) {
+      doc.addImage(state.signatures.self.dataUrl, 'PNG', leftX + 1, boxY + 1, sigBoxW - 2, sigBoxH - 2);
+    }
+    if (state.signatures.hod.dataUrl) {
+      doc.addImage(state.signatures.hod.dataUrl, 'PNG', rightX + 1, boxY + 1, sigBoxW - 2, sigBoxH - 2);
+    }
+
+    let ny = boxY + sigBoxH + 8;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Name:', leftX, ny);
+    doc.text('Name:', rightX, ny);
+    doc.setFont('helvetica', 'normal');
+    doc.text(state.signatures.self.name || '', leftX + 14, ny);
+    doc.text(state.signatures.hod.name || '',  rightX + 14, ny);
+
+    ny += 7;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date :', leftX, ny);
+    doc.text('Date :', rightX, ny);
+    doc.setFont('helvetica', 'normal');
+    const selfDate = fmtDateDDMMYYYY(state.signatures.self.date);
+    const hodDate  = fmtDateDDMMYYYY(state.signatures.hod.date);
+    doc.text((selfDate || '___ / ___ / ______') + '  (DD/MM/YYYY)', leftX + 14, ny);
+    doc.text((hodDate  || '___ / ___ / ______') + '  (DD/MM/YYYY)', rightX + 14, ny);
+
+    // --- Filename ---
+    const dateForName = (state.signatures.self.date || todayISO()).replaceAll('-', '');
+    // DDMMYYYY from YYYYMMDD
+    const ddmmyyyy = dateForName.slice(6, 8) + dateForName.slice(4, 6) + dateForName.slice(0, 4);
+    const filename = `TravelExpense_${slug(E.name)}_${ddmmyyyy}.pdf`;
+    doc.save(filename);
+  }
+
+  function formatCell(v) {
+    const n = num(v);
+    return n ? fmtINR(n) : '';
+  }
+
+  function padRows(rows, cols, minRows) {
+    const out = rows.slice();
+    while (out.length < minRows) {
+      out.push(new Array(cols).fill(''));
+    }
+    return out;
+  }
+
+  // ----- Init -----
+  function init() {
+    loadDraft();
+    if (state.travel.length === 0) for (let i = 0; i < MAX_ROWS_PAD; i++) state.travel.push(blankTravel());
+    if (state.expenses.length === 0) for (let i = 0; i < MAX_ROWS_PAD; i++) state.expenses.push(blankExpense());
+
+    bindEmployeeInputs();
+    renderTravel();
+    renderExpenses();
+    delegateTableInputs();
+
+    setupPad(document.getElementById('sig-self'));
+    setupPad(document.getElementById('sig-hod'));
+    restoreSig('self'); restoreSig('hod');
+
+    document.querySelectorAll('[data-clear]').forEach(b => b.addEventListener('click', () => clearPad(b.getAttribute('data-clear'))));
+    document.getElementById('travel-add').addEventListener('click', () => { state.travel.push(blankTravel()); renderTravel(); scheduleSave(); });
+    document.getElementById('exp-add').addEventListener('click', () => { state.expenses.push(blankExpense()); renderExpenses(); scheduleSave(); });
+    document.getElementById('btn-pdf').addEventListener('click', generatePdf);
+    document.getElementById('btn-clear').addEventListener('click', clearDraft);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else { init(); }
+})();
+</script>
+</body>
+</html>
