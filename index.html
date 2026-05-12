@@ -151,7 +151,7 @@
               <th rowspan="2">Place Visited</th>
               <th colspan="2">Stay From</th>
               <th colspan="2">To</th>
-              <th rowspan="2">Medium of travel (Air / Rail)</th>
+              <th rowspan="2">Medium of travel (Air / Rail / Road)</th>
               <th rowspan="2"></th>
             </tr>
             <tr>
@@ -342,6 +342,7 @@
           <select data-bind="travel.${i}.medium">
             <option ${r.medium==='Air'?'selected':''}>Air</option>
             <option ${r.medium==='Rail'?'selected':''}>Rail</option>
+            <option ${r.medium==='Road'?'selected':''}>Road</option>
           </select>
         </td>
         <td class="del"><button type="button" class="icon" data-remove="travel" data-idx="${i}" aria-label="Remove row">×</button></td>
@@ -689,7 +690,7 @@
           { content: 'Place Visited', rowSpan: 2 },
           { content: 'Stay From', colSpan: 2 },
           { content: 'To', colSpan: 2 },
-          { content: 'Medium of\ntravel to that place\n(Air / Rail)', rowSpan: 2 }
+          { content: 'Medium of\ntravel to that place\n(Air / Rail / Road)', rowSpan: 2 }
         ],
         [
           { content: 'Date' }, { content: 'Time' },
