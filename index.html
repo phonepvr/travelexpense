@@ -226,7 +226,7 @@
       <h2>Signatures</h2>
       <div class="sig-grid">
         <div class="sig-block">
-          <label>Your Signature</label>
+          <label>Your Signature <span class="hint">(optional)</span></label>
           <div class="pad-wrap">
             <canvas class="sig-pad" id="sig-self" width="600" height="180"></canvas>
             <button type="button" class="sig-clear icon" data-clear="self">Clear</button>
@@ -235,19 +235,19 @@
           <div style="margin-top:10px" class="grid-2">
             <div>
               <label for="f-self-name">Name</label>
-              <input id="f-self-name" type="text" required />
+              <input id="f-self-name" type="text" />
               <div class="field-err" data-err="selfName"></div>
             </div>
             <div>
               <label for="f-self-date">Date (DD/MM/YYYY)</label>
-              <input id="f-self-date" type="date" required />
+              <input id="f-self-date" type="date" />
               <div class="field-err" data-err="selfDate"></div>
             </div>
           </div>
         </div>
 
         <div class="sig-block">
-          <label>Head of Department's Signature</label>
+          <label>Head of Department's Signature <span class="hint">(optional)</span></label>
           <div class="pad-wrap">
             <canvas class="sig-pad" id="sig-hod" width="600" height="180"></canvas>
             <button type="button" class="sig-clear icon" data-clear="hod">Clear</button>
@@ -256,12 +256,12 @@
           <div style="margin-top:10px" class="grid-2">
             <div>
               <label for="f-hod-name">Name</label>
-              <input id="f-hod-name" type="text" required />
+              <input id="f-hod-name" type="text" />
               <div class="field-err" data-err="hodName"></div>
             </div>
             <div>
               <label for="f-hod-date">Date (DD/MM/YYYY)</label>
-              <input id="f-hod-date" type="date" required />
+              <input id="f-hod-date" type="date" />
               <div class="field-err" data-err="hodDate"></div>
             </div>
           </div>
@@ -504,13 +504,6 @@
     scheduleSave();
   }
 
-  function isCanvasBlank(canvas) {
-    const ctx = canvas.getContext('2d');
-    const d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    for (let i = 3; i < d.length; i += 4) { if (d[i] !== 0) return false; }
-    return true;
-  }
-
   // ----- Persistence -----
   let saveTimer = null;
   function scheduleSave() {
@@ -562,22 +555,13 @@
     });
     if (!/^\d{6,10}$/.test(String(e.sapId || ''))) { setErr('sapId', 'Must be 6–10 digits'); ok = false; } else setErr('sapId', '');
 
-    // signatures
-    const selfCanvas = document.getElementById('sig-self');
-    const hodCanvas = document.getElementById('sig-hod');
-    if (isCanvasBlank(selfCanvas)) { setErr('sigSelf', 'Please sign'); ok = false; } else setErr('sigSelf', '');
-    if (isCanvasBlank(hodCanvas))  { setErr('sigHod',  'Please sign'); ok = false; } else setErr('sigHod', '');
-
+    // signatures are optional — clear any stale errors,
+    // only flag a filled-in date that is in the future
+    setErr('sigSelf', ''); setErr('sigHod', '');
+    setErr('selfName', ''); setErr('hodName', '');
     const today = todayISO();
-    const sigChecks = [
-      ['selfName', state.signatures.self.name, 'Required'],
-      ['hodName',  state.signatures.hod.name,  'Required'],
-      ['selfDate', state.signatures.self.date, 'Required'],
-      ['hodDate',  state.signatures.hod.date,  'Required']
-    ];
-    sigChecks.forEach(([k, v, msg]) => {
-      if (!v) { setErr(k, msg); ok = false; }
-      else if ((k === 'selfDate' || k === 'hodDate') && v > today) { setErr(k, 'Date cannot be in the future'); ok = false; }
+    [['selfDate', state.signatures.self.date], ['hodDate', state.signatures.hod.date]].forEach(([k, v]) => {
+      if (v && v > today) { setErr(k, 'Date cannot be in the future'); ok = false; }
       else setErr(k, '');
     });
 
